@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block title %}{{ course.name }}{% endblock %}
+
+{% block breadcrumb %}
+<a href="/">Dashboard</a> › <a href="/">{{ course.department.name }}</a> › {{ course.code }}
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h2>{{ course.name }}</h2>
+    <p class="page-sub">
+      <span class="code-badge">{{ course.code }}</span>
+      {{ course.department.name }}
+    </p>
+    {% if course.description %}<p class="course-desc-full">{{ course.description }}</p>{% endif %}
+  </div>
+</div>
+
+{# ── Search bar ── #}
+<form class="course-search-form" action="/courses/{{ course.id }}" method="get">
+  <input name="q" type="text" placeholder="Search files in this course…"
+         class="input search-input-lg" value="{{ search_query }}" />
+  <button class="btn btn-secondary btn-sm">Search</button>
+  {% if search_query %}
+  <a href="/courses/{{ course.id }}" class="btn btn-ghost btn-sm">Clear</a>
+  {% endif %}
+</form>
+
+{% if search_query %}
+{# ── Search results mode ── #}
+<section class="files-section">
+  <h3 class="section-title">Results for "{{ search_query }}" — {{ search_results | length }} found</h3>
+  {% if search_results %}
+  <div class="file-table-wrap">
+    <table class="file-table">
+      <thead><tr>
+        <th>File</th><th>Folder</th><th>Uploader</th><th>Size</th><th>Date</th><th>Actions</th>
+      </tr></thead>
+      <tbody>
+        {% for f in search_results %}
+        {% include "courses/_file_row.html" %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">No files match "{{ search_query }}".</div>
+  {% endif %}
+</section>
+
+{% else %}
+{# ── Normal view ── #}
+<div class="course-layout">
+  <div class="course-main">
+
+    {% if can_upload %}
+    {# Upload form #}
+    <section class="upload-section">
+      <h3 class="section-title">Upload File</h3>
+      <form action="/files/upload/{{ course.id }}" method="post" enctype="multipart/form-data" class="upload-form">
+        <div class="upload-row">
+          <div class="field field-inline">
+            <label>File</label>
+            <input type="file" name="file" required class="input"
+                   accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" />
+          </div>
+          <div class="field field-inline">
+            <label>Folder <span class="muted">(optional)</span></label>
+            <select name="folder_id" class="input">
+              <option value="">— Course root —</option>
+              {% for folder in folders %}
+              <option value="{{ folder.id }}">{{ folder.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Upload</button>
+        </div>
+        <div class="upload-hint">PDF, JPG, PNG, DOC, DOCX, XLS, XLSX · max 50 MB</div>
+      </form>
+    </section>
+
+    {# Create folder #}
+    <section class="folder-create-section">
+      <details class="collapsible">
+        <summary>+ Create new folder</summary>
+        <form action="/courses/{{ course.id }}/folders/create" method="post" class="inline-form">
+          <div class="form-row">
+            <input type="text" name="name" placeholder="Folder name…" class="input" required />
+            <button type="submit" class="btn btn-secondary btn-sm">Create</button>
+          </div>
+        </form>
+      </details>
+    </section>
+    {% endif %}
+
+    {# ── Folders ── #}
+    {% for folder in folders %}
+    <section class="folder-section">
+      <div class="folder-hdr">
+        <h3 class="folder-title">
+          📁 {{ folder.name }}
+          <span class="file-count">({{ folder_files[folder.id] | length }} files)</span>
+        </h3>
+        {% if can_upload %}
+        <form action="/courses/{{ course.id }}/folders/{{ folder.id }}/delete" method="post"
+              onsubmit="return confirm('Delete folder? Files will move to course root.')">
+          <button type="submit" class="btn btn-danger btn-xs">Delete Folder</button>
+        </form>
+        {% endif %}
+      </div>
+      {% if folder_files[folder.id] %}
+      <div class="file-table-wrap">
+        <table class="file-table">
+          <thead><tr><th>File</th><th>Uploader</th><th>Size</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% for f in folder_files[folder.id] %}
+            {% include "courses/_file_row.html" %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="empty-folder">Folder is empty.</p>
+      {% endif %}
+    </section>
+    {% endfor %}
+
+    {# ── Unfoldered files ── #}
+    <section class="files-section">
+      <h3 class="section-title">
+        📄 Course Files
+        {% if unfoldered %}<span class="file-count">({{ unfoldered | length }})</span>{% endif %}
+      </h3>
+      {% if unfoldered %}
+      <div class="file-table-wrap">
+        <table class="file-table">
+          <thead><tr><th>File</th><th>Uploader</th><th>Size</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% for f in unfoldered %}
+            {% include "courses/_file_row.html" %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state">No files uploaded yet.</div>
+      {% endif %}
+    </section>
+  </div>
+
+  {# ── Audit log sidebar ── #}
+  <aside class="audit-sidebar">
+    <h3 class="section-title">Audit Log</h3>
+    {% if audit_logs %}
+    <ul class="audit-list">
+      {% for log in audit_logs %}
+      <li class="audit-item audit-{{ log.action }}">
+        <div class="audit-action">{{ '⬆️' if log.action == 'upload' else '🗑️' }} {{ log.action | upper }}</div>
+        <div class="audit-file">{{ log.file_name }}</div>
+        <div class="audit-meta">{{ log.user.full_name }} · {{ log.timestamp.strftime('%b %d, %H:%M') }}</div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="muted-sm">No activity yet.</p>
+    {% endif %}
+  </aside>
+</div>
+{% endif %}
+{% endblock %}

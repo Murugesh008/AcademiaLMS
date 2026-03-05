@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}New Course{% endblock %}
+{% block breadcrumb %}<a href="/">Dashboard</a> › New Course{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>Create New Course</h2>
+  <p class="page-sub">Will be added to {{ current_user.department.name }}</p>
+</div>
+
+<div class="form-card">
+  {% if error %}<div class="flash flash-error">{{ error }}</div>{% endif %}
+
+  <form method="post" action="/courses/create/new" class="std-form">
+    <div class="field">
+      <label for="code">Course Code <span class="req">*</span></label>
+      <input id="code" name="code" type="text" class="input" placeholder="e.g. CS101" required maxlength="50" />
+    </div>
+    <div class="field">
+      <label for="name">Course Name <span class="req">*</span></label>
+      <input id="name" name="name" type="text" class="input" placeholder="e.g. Introduction to Computer Science" required maxlength="255" />
+    </div>
+    <div class="field">
+      <label for="description">Description</label>
+      <textarea id="description" name="description" class="input" rows="4" placeholder="Optional…"></textarea>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Create Course</button>
+      <a href="/" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

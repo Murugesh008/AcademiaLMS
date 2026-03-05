@@ -1,0 +1,25 @@
+<tr class="file-row">
+  <td class="file-name-cell">
+    {% if f.mime_type %}
+      {% if 'pdf' in f.mime_type %}📄
+      {% elif 'image' in f.mime_type %}🖼️
+      {% elif 'sheet' in f.mime_type or 'excel' in f.mime_type %}📊
+      {% elif 'word' in f.mime_type %}📝
+      {% else %}📎{% endif %}
+    {% else %}📎{% endif %}
+    {{ f.original_name }}
+  </td>
+  {% if f.folder %}<td class="muted-sm">{{ f.folder.name }}</td>{% endif %}
+  <td class="muted-sm">{{ f.uploader.full_name }}</td>
+  <td class="muted-sm nowrap">{{ f.size_human }}</td>
+  <td class="muted-sm nowrap">{{ f.upload_date.strftime('%Y-%m-%d') }}</td>
+  <td class="file-actions">
+    <a href="/files/download/{{ f.id }}" class="btn btn-secondary btn-xs">⬇ Download</a>
+    {% if can_upload %}
+    <form action="/files/delete/{{ f.id }}" method="post" style="display:inline"
+          onsubmit="return confirm('Permanently delete this file?')">
+      <button type="submit" class="btn btn-danger btn-xs">Delete</button>
+    </form>
+    {% endif %}
+  </td>
+</tr>

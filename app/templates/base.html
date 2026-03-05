@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>{% block title %}AcademiaLMS{% endblock %}</title>
+
+  <!-- MAIN CSS -->
+  <link rel="stylesheet" href="/static/css/main.css">
+
+  {% block head %}{% endblock %}
+</head>
+
+<body class="{% block body_class %}app-body{% endblock %}">
+
+{% if current_user %}
+{# ── App shell with sidebar ── #}
+<div class="layout">
+
+  {# Sidebar #}
+  <nav class="sidebar" id="sidebar">
+    <div class="sb-header">
+      <div class="sb-logo">
+        <span class="sb-logo-icon">📚</span>
+        <span class="sb-logo-text">AcademiaLMS</span>
+      </div>
+      <button class="sb-close" id="sbClose">✕</button>
+    </div>
+
+    <div class="sb-user">
+      <div class="sb-avatar">{{ current_user.full_name[0] | upper }}</div>
+      <div>
+        <div class="sb-user-name">{{ current_user.full_name }}</div>
+        <span class="role-badge role-{{ current_user.role }}">{{ current_user.role }}</span>
+      </div>
+    </div>
+
+    <form class="sb-search" action="/search" method="get">
+      <input name="q" type="text" placeholder="Search courses…" class="sb-search-input"
+             value="{{ request.query_params.get('q', '') }}" />
+      <button type="submit" class="sb-search-btn">🔍</button>
+    </form>
+
+    <ul class="sb-nav">
+      <li><a href="/" class="{{ 'active' if request.url.path == '/' else '' }}">
+        <span>🏠</span> Dashboard
+      </a></li>
+      <li><a href="/#my-department">
+        <span>🏛️</span> My Department
+      </a></li>
+      <li><a href="/#other-departments">
+        <span>🌐</span> Other Departments
+      </a></li>
+      {% if current_user.is_professor %}
+      <li><a href="/courses/create/new" class="{{ 'active' if request.url.path == '/courses/create/new' else '' }}">
+        <span>➕</span> New Course
+      </a></li>
+      {% endif %}
+    </ul>
+
+    <div class="sb-footer">
+      <div class="sb-dept-label">
+        <span>🏫</span> {{ current_user.department.name }}
+      </div>
+      <a href="/logout" class="sb-logout">
+        <span>🚪</span> Logout
+      </a>
+    </div>
+  </nav>
+
+  <div class="sb-overlay" id="sbOverlay"></div>
+
+  <main class="main" id="mainContent">
+    <div class="topbar">
+      <button class="topbar-menu-btn" id="sbOpen">☰</button>
+      <nav class="breadcrumb">{% block breadcrumb %}{% endblock %}</nav>
+      <span class="topbar-dept">{{ current_user.department.code }}</span>
+    </div>
+
+    {% set upload_error = request.query_params.get('upload_error', '') %}
+    {% set folder_error = request.query_params.get('folder_error', '') %}
+
+    {% if upload_error %}
+    <div class="flash flash-error">{{ upload_error }} <button class="flash-x" onclick="this.parentElement.remove()">×</button></div>
+    {% endif %}
+
+    {% if folder_error %}
+    <div class="flash flash-error">{{ folder_error }} <button class="flash-x" onclick="this.parentElement.remove()">×</button></div>
+    {% endif %}
+
+    <div class="page-body">
+
+{% endif %}
+
+{# --- THIS IS THE ONLY CONTENT BLOCK --- #}
+{% block content %}{% endblock %}
+
+{% if current_user %}
+    </div>
+  </main>
+</div>
+{% endif %}
+
+<script src="/static/js/main.js"></script>
+{% block scripts %}{% endblock %}
+
+</body>
+</html>

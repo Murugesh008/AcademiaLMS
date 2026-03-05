@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block breadcrumb %}<a href="/">Dashboard</a>{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>Welcome, {{ current_user.full_name }}</h2>
+  <p class="page-sub">{{ current_user.role | capitalize }} · {{ current_user.department.name }}</p>
+</div>
+
+{# ── My Department ── #}
+<section class="dept-section" id="my-department">
+  <div class="section-hdr">
+    <div>
+      <h3 class="section-title">
+        🏛️ My Department: {{ my_dept.name }}
+        <span class="code-badge">{{ my_dept.code }}</span>
+      </h3>
+      {% if my_dept.description %}<p class="section-desc">{{ my_dept.description }}</p>{% endif %}
+    </div>
+    {% if current_user.is_professor %}
+    <a href="/courses/create/new" class="btn btn-primary btn-sm">+ New Course</a>
+    {% endif %}
+  </div>
+
+  {% if my_courses %}
+  <div class="course-grid">
+    {% for c in my_courses %}
+    <a href="/courses/{{ c.id }}" class="course-card mine">
+      <div class="cc-code">{{ c.code }}</div>
+      <div class="cc-name">{{ c.name }}</div>
+      {% if c.description %}<div class="cc-desc">{{ c.description[:80] }}{% if c.description|length > 80 %}…{% endif %}</div>{% endif %}
+      <div class="cc-meta"><span>{{ c.files | length }} files</span><span>→</span></div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    No courses yet.
+    {% if current_user.is_professor %}<br><a href="/courses/create/new" class="btn btn-primary btn-sm mt-1">Create one</a>{% endif %}
+  </div>
+  {% endif %}
+</section>
+
+{# ── Other Departments ── #}
+{% if other_dept_courses %}
+<section class="dept-section" id="other-departments">
+  <div class="section-hdr">
+    <h3 class="section-title">🌐 Other Departments</h3>
+  </div>
+  {% for dept, courses in other_dept_courses %}
+  <div class="other-dept-block">
+    <h4 class="other-dept-title">
+      {{ dept.name }} <span class="code-badge code-badge-muted">{{ dept.code }}</span>
+    </h4>
+    {% if courses %}
+    <div class="course-grid course-grid-sm">
+      {% for c in courses %}
+      <a href="/courses/{{ c.id }}" class="course-card other">
+        <div class="cc-code">{{ c.code }}</div>
+        <div class="cc-name">{{ c.name }}</div>
+        <div class="cc-meta"><span>{{ c.files | length }} files</span><span>→</span></div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="no-courses">No courses yet.</p>
+    {% endif %}
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

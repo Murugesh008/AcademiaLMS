@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}429 Too Many Requests{% endblock %}
+{% block body_class %}error-page{% endblock %}
+{% block content %}
+<div class="error-wrap">
+  <div class="error-code">429</div>
+  <h2>Too Many Requests</h2>
+  <p>You've made too many requests. Please wait a moment and try again.</p>
+  <a href="/login" class="btn btn-primary">Back to Login</a>
+</div>
+{% endblock %}

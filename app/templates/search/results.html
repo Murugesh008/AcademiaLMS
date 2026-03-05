@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Search{% endblock %}
+{% block breadcrumb %}<a href="/">Dashboard</a> › Search{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>Search Courses</h2>
+</div>
+
+<form class="search-page-form" action="/search" method="get">
+  <div class="form-row">
+    <input name="q" type="text" placeholder="Search course names…"
+           class="input search-input-lg" value="{{ query }}" autofocus />
+    <button type="submit" class="btn btn-primary">Search</button>
+  </div>
+</form>
+
+{% if query %}
+<div class="search-results">
+  <p class="results-meta">{{ results | length }} course(s) found for "{{ query }}"</p>
+
+  {% if results %}
+  <div class="course-grid">
+    {% for c in results %}
+    <a href="/courses/{{ c.id }}" class="course-card">
+      <div class="cc-code">{{ c.code }}</div>
+      <div class="cc-name">{{ c.name }}</div>
+      <div class="cc-dept">{{ c.department.name }}</div>
+      <div class="cc-meta"><span>{{ c.files | length }} files</span><span>→</span></div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">No courses match "{{ query }}".</div>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}
